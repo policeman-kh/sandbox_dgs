@@ -1,0 +1,35 @@
+plugins {
+	id 'org.springframework.boot' version '2.4.1'
+	id 'io.spring.dependency-management' version '1.0.10.RELEASE'
+	id 'java'
+	id 'java-library'	// added
+}
+
+group = 'sandbox'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+	jcenter()	// added
+}
+
+dependencies {
+	api "com.netflix.graphql.dgs:graphql-dgs-spring-boot-starter:latest.release"
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'com.google.guava:guava:30.0-jre'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+}
+
+test {
+	useJUnitPlatform()
+}
