@@ -1,1 +1,13 @@
+#debug: true
 
+spring:
+  thymeleaf:
+    prefix: file:src/main/resources/templates/
+    cache: false
+
+# To enable to get metrics of spring-actuator from /actuator/prometheus
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,prometheus

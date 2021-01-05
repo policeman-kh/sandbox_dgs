@@ -7,3 +7,5 @@ To confirm implementation of GraphQL server with [DGS](https://netflix.github.io
 
 * Query
 * Mutation
+* Subscription
+

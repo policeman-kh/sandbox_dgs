@@ -16,3 +16,7 @@ type Mutation {
         pageCount: Int
     ): Book
 }
+
+type Subscription {
+    subscribeBooks: Book
+}
