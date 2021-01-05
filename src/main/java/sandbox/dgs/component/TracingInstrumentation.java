@@ -1,9 +1,8 @@
 package sandbox.dgs.component;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import graphql.ExecutionResult;
@@ -16,10 +15,18 @@ import graphql.schema.DataFetcher;
 import graphql.schema.GraphQLNonNull;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLOutputType;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.Timer;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
+@AllArgsConstructor
 @Component
 public class TracingInstrumentation extends SimpleInstrumentation {
-    private final static Logger LOGGER = LoggerFactory.getLogger(TracingInstrumentation.class);
+    private static final String METRIC_NAME = "graphql.metrics";
+    private final MeterRegistry meterRegistry;
 
     @Override
     public InstrumentationState createState() {
@@ -27,46 +34,47 @@ public class TracingInstrumentation extends SimpleInstrumentation {
     }
 
     @Override
-    public InstrumentationContext<ExecutionResult> beginExecution(InstrumentationExecutionParameters parameters) {
+    public InstrumentationContext<ExecutionResult> beginExecution(
+            InstrumentationExecutionParameters parameters) {
         TracingState tracingState = parameters.getInstrumentationState();
-        tracingState.startTime = System.currentTimeMillis();
+        tracingState.sample = Timer.start(meterRegistry);
         return super.beginExecution(parameters);
     }
 
     @Override
-    public DataFetcher<?> instrumentDataFetcher(DataFetcher<?> dataFetcher, InstrumentationFieldFetchParameters parameters) {
+    public DataFetcher<?> instrumentDataFetcher(DataFetcher<?> dataFetcher,
+                                                InstrumentationFieldFetchParameters parameters) {
         // We only care about user code
-        if(parameters.isTrivialDataFetcher()) {
+        if (parameters.isTrivialDataFetcher()) {
             return dataFetcher;
         }
-
         return environment -> {
-            long startTime = System.currentTimeMillis();
+            Timer.Sample sample = Timer.start(meterRegistry);
             Object result = dataFetcher.get(environment);
-            if(result instanceof CompletableFuture) {
+            String[] tags = findDataFetcherTags(parameters);
+            Timer timer = Timer.builder(METRIC_NAME)
+                               .tags(List.of(Tag.of("type", tags[0]), Tag.of("method", tags[1])))
+                               .register(meterRegistry);
+            if (result instanceof CompletableFuture) {
                 ((CompletableFuture<?>) result).whenComplete((r, ex) -> {
-                    long totalTime = System.currentTimeMillis() - startTime;
-                    LOGGER.info("Async datafetcher {} took {}ms", findDataFetcherTag(parameters), totalTime);
+                    sample.stop(timer);
                 });
             } else {
-                long totalTime = System.currentTimeMillis() - startTime;
-                LOGGER.info("Datafetcher {} took {}ms", findDataFetcherTag(parameters), totalTime);
+                sample.stop(timer);
             }
-
             return result;
         };
     }
 
     @Override
-    public CompletableFuture<ExecutionResult> instrumentExecutionResult(ExecutionResult executionResult, InstrumentationExecutionParameters parameters) {
+    public CompletableFuture<ExecutionResult> instrumentExecutionResult(ExecutionResult executionResult,
+                                                                        InstrumentationExecutionParameters parameters) {
         TracingState tracingState = parameters.getInstrumentationState();
-        long totalTime = System.currentTimeMillis() - tracingState.startTime;
-        LOGGER.info("Total execution time: {}ms", totalTime);
-
+        tracingState.sample.stop(meterRegistry.timer(METRIC_NAME + ".total"));
         return super.instrumentExecutionResult(executionResult, parameters);
     }
 
-    private String findDataFetcherTag(InstrumentationFieldFetchParameters parameters) {
+    private String[] findDataFetcherTags(InstrumentationFieldFetchParameters parameters) {
         GraphQLOutputType type = parameters.getExecutionStepInfo().getParent().getType();
         GraphQLObjectType parent;
         if (type instanceof GraphQLNonNull) {
@@ -74,11 +82,10 @@ public class TracingInstrumentation extends SimpleInstrumentation {
         } else {
             parent = (GraphQLObjectType) type;
         }
-
-        return  parent.getName() + "." + parameters.getExecutionStepInfo().getPath().getSegmentName();
+        return new String[] { parent.getName(), parameters.getExecutionStepInfo().getPath().getSegmentName() };
     }
 
     static class TracingState implements InstrumentationState {
-        long startTime;
+        Timer.Sample sample;
     }
 }

@@ -11,3 +11,7 @@ management:
     web:
       exposure:
         include: health,metrics,prometheus
+  metrics:
+    distribution:
+      percentiles:
+         all: 0.5, 0.75, 0.95, 0.99

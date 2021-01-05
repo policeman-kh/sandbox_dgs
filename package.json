@@ -9,7 +9,9 @@
     "subscriptions-transport-ws": "^0.9.18",
     "graphql": "^15.4.0",
     "graphql-tag": "^2.11.0",
-    "react": "^17.0.1"
+    "react": "^17.0.1",
+    "@types/jquery": "^3.5.5",
+    "jquery": "^3.5.1"
   },
   "devDependencies": {
     "webpack": "^5.11.1",

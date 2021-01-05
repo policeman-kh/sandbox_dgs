@@ -3,6 +3,7 @@ import { SubscriptionClient } from 'subscriptions-transport-ws';
 import { ApolloClient, InMemoryCache } from "@apollo/client";
 //import { useSubscription } from '@apollo/react-hooks';
 import gql from 'graphql-tag';
+import * as $ from 'jquery';
 
 const GRAPHQL_ENDPOINT = 'ws://localhost:8080/subscriptions';
 
@@ -25,13 +26,16 @@ subscription BookSubscription {
   }
 }
 `
-// subscribe
+
 const s = apolloClient.subscribe({
   query: asGql
 })
-
 s.subscribe({
-  next: ({ data }) => console.log(data)
+  next: ({ data }) => {
+    const result = document.getElementById("result");
+    $("#result").append(JSON.stringify(data));
+    $("#result").append("<br>");
+  }
 });
 
 
