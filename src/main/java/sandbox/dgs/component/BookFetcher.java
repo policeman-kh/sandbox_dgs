@@ -4,6 +4,8 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 
 import java.util.List;
 
+import org.reactivestreams.Publisher;
+
 import com.netflix.graphql.dgs.DgsComponent;
 import com.netflix.graphql.dgs.DgsData;
 import com.netflix.graphql.dgs.InputArgument;
@@ -44,5 +46,10 @@ public class BookFetcher {
         // Emit an event for subscription.
         bookProcessor.emit(book);
         return book;
+    }
+
+    @DgsData(parentType = "Subscription", field = "subscribeBooks")
+    public Publisher<Book> subscribeBooks() {
+        return bookProcessor.publish();
     }
 }
