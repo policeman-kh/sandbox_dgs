@@ -2,8 +2,9 @@ plugins {
 	id 'org.springframework.boot' version '2.4.1'
 	id 'io.spring.dependency-management' version '1.0.10.RELEASE'
 	id 'java'
-	id 'java-library'	// added for api.
-	//id "com.netflix.dgs.codegen" version "4.0.10"
+	id 'java-library'
+	// id "com.netflix.dgs.codegen" version "4.0.10"
+	// Added to build client code with node.js.
 	id 'com.github.node-gradle.node' version '2.2.4'
 }
 
@@ -19,7 +20,7 @@ configurations {
 
 repositories {
 	mavenCentral()
-	jcenter()	// added
+	jcenter()
 }
 
 dependencies {
@@ -28,10 +29,11 @@ dependencies {
 	implementation 'com.netflix.graphql.dgs:graphql-dgs-subscriptions-websockets-autoconfigure:latest.release'
 
 	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-	implementation 'com.google.guava:guava:30.0-jre'
 
-	// For metrics
+	// To output html.
+	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+
+	// For metrics.
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'io.micrometer:micrometer-registry-prometheus:1.6.0'
 
@@ -41,6 +43,7 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 }
 
+// Added to build client code with node.js.
 node {
 	version = '12.14.0'
 	npmVersion = '6.13.4'

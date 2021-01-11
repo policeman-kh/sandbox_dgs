@@ -1,7 +1,5 @@
 package sandbox.dgs.component;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
-
 import java.util.List;
 
 import org.reactivestreams.Publisher;
@@ -29,7 +27,7 @@ public class BookFetcher {
 
     @DgsData(parentType = "Query", field = "bookById")
     public List<Book> books(@InputArgument("id") String id) {
-        if (isNullOrEmpty(id)) {
+        if (id == null || id.isEmpty()) {
             return dataProvider.books();
         }
         return List.of(dataProvider.bookById(id));
