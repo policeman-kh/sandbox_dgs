@@ -1,6 +1,6 @@
 plugins {
-	id 'org.springframework.boot' version '2.5.3'
-	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+	id 'org.springframework.boot' version '2.7.4'
+	id 'io.spring.dependency-management' version '1.0.15.RELEASE'
 	id 'java'
 	id 'java-library'
 	// id "com.netflix.dgs.codegen" version "4.0.10"
@@ -11,6 +11,10 @@ plugins {
 group = 'sandbox'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '11'
+
+ext['kotlin.version'] = '1.4.31'
+// ref. https://github.com/Netflix/dgs-framework/issues/1281#issuecomment-1284694300
+ext['graphql-java.version'] = '19.2'
 
 configurations {
 	compileOnly {
@@ -23,7 +27,7 @@ repositories {
 }
 
 dependencies {
-	implementation(platform('com.netflix.graphql.dgs:graphql-dgs-platform-dependencies:4.5.0'))
+	implementation(platform('com.netflix.graphql.dgs:graphql-dgs-platform-dependencies:5.5.3'))
 	implementation 'com.netflix.graphql.dgs:graphql-dgs-spring-boot-starter'
 	// For subscription.
 	implementation 'com.netflix.graphql.dgs:graphql-dgs-subscriptions-websockets-autoconfigure'
